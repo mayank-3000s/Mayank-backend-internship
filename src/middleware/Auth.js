@@ -8,7 +8,7 @@ passport.use(new LocalStrategy(async(username, password, done)=>{
         if(!UserExists) {
             return done(null, false, {message: "User not found"})
         }
-        const access = password === UserExists.password ? true : false;
+        const access = UserExists.comparePassword(password);
         if(access) return done(null, UserExists)
         return done(null, false, {message: "password not matched"});
     } catch(err) {

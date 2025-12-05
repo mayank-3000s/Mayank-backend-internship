@@ -27,8 +27,8 @@ app.get('/error-test', (req, res, next) => {
 });
 
 const errorHandler = require('./src/middleware/errorHandler');
-
 app.use(errorHandler);
+
 const {port} = require('./env');
 app.listen(port, ()=>{
     console.log(`Server is live on ${port}`);
