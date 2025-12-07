@@ -1,7 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
-const { jwtToken, jwtAuthMiddleware } = require('../middleware/Jwt');
+const { jwtToken, jwtAuthMiddleware, isAdmin } = require('../middleware/Jwt');
+const passport = require('../middleware/Auth');
+router.use(passport.initialize());
+const LocalAuthMiddleware = passport.authenticate('local', {session: false});
 
 router.post('/register', async(req, res, next) => {
     try{
@@ -10,8 +13,9 @@ router.post('/register', async(req, res, next) => {
         const response = await newUser.save();
         if(response) {
             const payload = {
-                id : newUser.id,
-                username : newUser.username
+                id : newUser._id,
+                username : newUser.username,
+                role : newUser.role
             }
 
             const token = jwtToken(payload);
@@ -31,7 +35,19 @@ router.post('/register', async(req, res, next) => {
     }
 })
 
-router.post('/profile', jwtAuthMiddleware, async(req, res, next) => {
+router.post('/login',LocalAuthMiddleware ,async(req, res) => {
+    const {username} = req.body;
+    const UserDetails = User.findOne({username});
+    const payload = {
+        id: UserDetails._id,
+        username: username,
+        role: UserDetails.role
+    }
+    const token = jwtToken(payload);
+    res.status(200).json({success: true, message: 'Welcome User', token: token});
+} )
+
+router.get('/profile', jwtAuthMiddleware, async(req, res, next) => {
     try{
         const response = req.user;
         if(!response) return res.status(400).json({message: "Unauthorized"});
@@ -44,6 +60,15 @@ router.post('/profile', jwtAuthMiddleware, async(req, res, next) => {
             email: findData.email
         }
         res.status(200).json(data);
+    } catch(err) {
+        next(err);
+    }
+})
+
+router.get('/admin/users', jwtAuthMiddleware, isAdmin, async(req, res, next)=> {
+    try{
+        const response = await User.find().select("username email role");
+        res.status(200).json(response);
     } catch(err) {
         next(err);
     }

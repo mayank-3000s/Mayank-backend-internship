@@ -13,13 +13,25 @@ const jwtAuthMiddleware = (req, res, next) => {
         req.user = decode;
         next();
     } catch(err) {
-        throw new Error(err);
+        next(err);
     }
 };
+
+const isAdmin = (req, res, next) => {
+    try{
+        const role = req.user.role;
+        if(role !== 'admin') {
+            return res.status(401).json({message: 'Admins only'});
+        }
+        next();
+    } catch(err) {
+        next(err);
+    }
+}
 
 const jwtToken = (payload) => {
     const token = jwt.sign(payload, jwt_token_key);
     return token;
 }
 
-module.exports = {jwtToken, jwtAuthMiddleware};
+module.exports = {jwtToken, jwtAuthMiddleware, isAdmin};
