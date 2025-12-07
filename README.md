@@ -9,6 +9,8 @@ A Node.js + Express Backend + MongoDB database
 - database
 - hashpassword
 - jwt 
+- RBAC
+- CRUD operation for users
 
 #Folder Structure 
 /src 

@@ -74,4 +74,43 @@ router.get('/admin/users', jwtAuthMiddleware, isAdmin, async(req, res, next)=> {
     }
 })
 
+router.get('/users/me', jwtAuthMiddleware, async(req, res, next) =>{
+    try{
+        const {username} = req.user;
+        const data = await User.find({username}).select("-password");
+        return res.status(200).json(data); 
+    } catch(err) {
+        next(err);
+    }
+})
+
+router.put('/users/update', jwtAuthMiddleware, async(req, res, next)=> {
+    try{
+        const {username} = req.user;
+        const data = req.body;
+        const payload = {
+            id: response._id,
+            username: username,
+            role: response.role
+        }
+        const token = jwtToken(payload);
+        const response = await User.findOneAndUpdate({username}, data, {new: true});
+        if(response) return res.status(200).json({response, token});
+        res.status(400).json("Internal server error");
+    } catch(err) {
+        next(err);
+    }
+})
+
+router.delete('/users/delete', jwtAuthMiddleware, async(req, res, next)=> {
+    try{
+        const {username} = req.user;
+        const response = await User.findOneAndDelete({username});
+        if(response) return res.status(200).json({message: "I loved our time together... :( sayonara ⛩️"});
+        res.status(400).json("Internal server error");
+    } catch(err) {
+        next(err);
+    }
+})
+
 module.exports = router;
