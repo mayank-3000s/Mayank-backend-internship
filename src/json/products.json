@@ -1,0 +1,72 @@
+[
+  {
+    "product_name": "Wireless Earbuds",
+    "description": "Bluetooth 5.3 earbuds with noise cancellation",
+    "price": 1999,
+    "category": "Electronics",
+    "stock": 15
+  },
+  {
+    "product_name": "Gaming Keyboard",
+    "description": "Mechanical keyboard with RGB lighting",
+    "price": 3499,
+    "category": "Electronics",
+    "stock": 10
+  },
+  {
+    "product_name": "Running Shoes",
+    "description": "Lightweight breathable sports shoes",
+    "price": 1599,
+    "category": "Sports",
+    "stock": 25
+  },
+  {
+    "product_name": "Smart Watch",
+    "description": "Fitness tracker with heart rate monitor",
+    "price": 2799,
+    "category": "Electronics",
+    "stock": 12
+  },
+  {
+    "product_name": "Backpack",
+    "description": "Waterproof laptop backpack 30L",
+    "price": 999,
+    "category": "Accessories",
+    "stock": 30
+  },
+  {
+    "product_name": "Office Chair",
+    "description": "Ergonomic chair with lumbar support",
+    "price": 5999,
+    "category": "Furniture",
+    "stock": 7
+  },
+  {
+    "product_name": "LED Desk Lamp",
+    "description": "Rechargeable lamp with adjustable brightness",
+    "price": 799,
+    "category": "Home",
+    "stock": 20
+  },
+  {
+    "product_name": "Cookware Set",
+    "description": "5-piece non-stick cookware set",
+    "price": 2499,
+    "category": "Kitchen",
+    "stock": 18
+  },
+  {
+    "product_name": "Water Bottle",
+    "description": "Stainless steel insulated bottle 1L",
+    "price": 499,
+    "category": "Accessories",
+    "stock": 40
+  },
+  {
+    "product_name": "Yoga Mat",
+    "description": "Anti-slip 10mm thick yoga mat",
+    "price": 899,
+    "category": "Fitness",
+    "stock": 22
+  }
+]

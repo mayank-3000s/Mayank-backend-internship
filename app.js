@@ -11,7 +11,7 @@ app.use(passport.initialize());
 
 const LocalAuthMiddleware = passport.authenticate('local', {session : false});
 
-app.get('/', LocalAuthMiddleware,(req, res) => {
+app.get('/', (req, res) => {
     res.status(200).json({
         message: "Welcome to Backend-internship-plan...", 
         time:new Date().toLocaleTimeString()

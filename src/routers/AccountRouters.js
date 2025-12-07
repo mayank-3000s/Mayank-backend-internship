@@ -3,8 +3,16 @@ const router = express.Router();
 const User = require('../models/User');
 const { jwtToken, jwtAuthMiddleware, isAdmin } = require('../middleware/Jwt');
 const passport = require('../middleware/Auth');
+const { getAllProducts, 
+        getProduct, 
+        createProduct, 
+        updateProduct, 
+        deleteProduct} = require('../controller/productController');
+
 router.use(passport.initialize());
 const LocalAuthMiddleware = passport.authenticate('local', {session: false});
+
+// sign in/up
 
 router.post('/register', async(req, res, next) => {
     try{
@@ -13,7 +21,7 @@ router.post('/register', async(req, res, next) => {
         const response = await newUser.save();
         if(response) {
             const payload = {
-                id : newUser._id,
+                _id : newUser._id,
                 username : newUser.username,
                 role : newUser.role
             }
@@ -37,9 +45,9 @@ router.post('/register', async(req, res, next) => {
 
 router.post('/login',LocalAuthMiddleware ,async(req, res) => {
     const {username} = req.body;
-    const UserDetails = User.findOne({username});
+    const UserDetails = await User.findOne({username});
     const payload = {
-        id: UserDetails._id,
+        _id: UserDetails._id,
         username: username,
         role: UserDetails.role
     }
@@ -65,14 +73,27 @@ router.get('/profile', jwtAuthMiddleware, async(req, res, next) => {
     }
 })
 
+// RBAC
+
 router.get('/admin/users', jwtAuthMiddleware, isAdmin, async(req, res, next)=> {
     try{
-        const response = await User.find().select("username email role");
-        res.status(200).json(response);
+        console.log(req.query); 
+        let page = Number(req.query.page) || 1;
+        let limit = Number(req.query.limit) || 3;
+        let skip = (page-1) * limit;  
+
+        const response = await User.find()
+        .skip(skip)
+        .limit(limit)
+        .select("username email role");
+
+        res.status(200).json({response,nbHits: response.length});
     } catch(err) {
         next(err);
     }
 })
+
+// users CRUD
 
 router.get('/users/me', jwtAuthMiddleware, async(req, res, next) =>{
     try{
@@ -112,5 +133,14 @@ router.delete('/users/delete', jwtAuthMiddleware, async(req, res, next)=> {
         next(err);
     }
 })
+
+// product management
+
+router.get('/product', getAllProducts);
+router.get('/product/:id', getProduct);
+
+router.post('/product/create', jwtAuthMiddleware, isAdmin, createProduct);
+router.put('/product/update/:id', jwtAuthMiddleware, isAdmin, updateProduct);
+router.delete('/product/delete/:id', jwtAuthMiddleware, isAdmin, deleteProduct);
 
 module.exports = router;
