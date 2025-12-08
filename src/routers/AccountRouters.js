@@ -136,7 +136,7 @@ router.delete('/users/delete', jwtAuthMiddleware, async(req, res, next)=> {
 
 // product management
 
-router.get('/product', getAllProducts);
+router.get('/products/all', getAllProducts);
 router.get('/product/:id', getProduct);
 
 router.post('/product/create', jwtAuthMiddleware, isAdmin, createProduct);

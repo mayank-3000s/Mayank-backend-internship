@@ -12,6 +12,7 @@ A Node.js + Express + MongoDB backend
 - RBAC
 - CRUD operation for users
 - products management // admin access - CRUD operation 
+- Pagination, Filtering, Sorting, Searching
 
 #Folder Structure 
 /src 
