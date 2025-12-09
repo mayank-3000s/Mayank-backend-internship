@@ -21,6 +21,9 @@ const newProductSchema = mongoose.Schema({
     createdAt: {
         type: Date,
         default: Date.now
+    },
+    image: {
+        type: String
     }
 })
 

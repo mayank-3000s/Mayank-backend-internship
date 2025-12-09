@@ -1,10 +1,8 @@
-const { RiDice1Fill } = require('react-icons/ri');
 const Product = require('../models/Product');
 
 exports.getAllProducts = async(req, res, next)=> {
     try{
-        let {sort, category, name, page, limit} = req.query;
-        console.log(req.query, sort);
+        let {sort, category, name} = req.query;
         let Objectquery = {}; 
         if(category) {
             Objectquery.category = {$regex: category, $options: 'i'}; // regex
@@ -14,15 +12,16 @@ exports.getAllProducts = async(req, res, next)=> {
             Objectquery.product_name = {$regex: name, $options : 'i'};
         }
         let apidata = Product.find(Objectquery);
-        if(page) {                      // paging
-            let _page = Number(req.query.page) || 1;
-            let _limit = Number(req.query.limit) || 5;
-            let skip = (page-1) * limit;
-            apidata = apidata.skip(skip).limit(limit);
-        }
         if(sort) {
             apidata = apidata.sort(sort); // sort
         }
+        // paging
+        let page = Number(req.query.page) || 1;
+        let limit = Number(req.query.limit) || 5;
+        let skip = (page-1) * limit;
+        apidata = apidata.skip(skip).limit(limit);
+        
+        
         const response = await apidata.select("-__v");
         if(response) return res.status(200).json({response, nbHit: response.length});
         const err = new Error();
@@ -47,7 +46,12 @@ exports.getProduct = async(req, res, next)=> {
 exports.createProduct = async(req, res, next) => {
     try{
         const data = req.body;
-        const newProduct = Product(data);
+        // const image = req.file ? req.file.buffer.toString('Base64') : null;
+        const prod = {
+            ...req.body,
+            image: req.file ? req.file.buffer.toString("base64") : null
+        };
+        const newProduct = Product(prod);
         const response = await newProduct.save();
         if(response) return res.status(200).json({success: true, response});
         const err = new Error();
