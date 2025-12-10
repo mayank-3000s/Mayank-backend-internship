@@ -45,6 +45,7 @@ exports.getProduct = async(req, res, next)=> {
 
 exports.createProduct = async(req, res, next) => {
     try{
+        req.body.createdBy = req.user._id;
         const data = req.body;
         // const image = req.file ? req.file.buffer.toString('Base64') : null;
         const prod = {
@@ -64,6 +65,13 @@ exports.deleteProduct = async(req, res, next) => {
     try{
         const _id = req.params.id;
         const response = await Product.findOneAndDelete({_id});
+        
+        if(req.user._id.toString() !== response.createdBy.toString()) {
+            return res.status(401).json({
+                success: false, 
+                message: "Not Allowed to Delete Another Vendors Product"
+            })
+        }
         if(response)  return res.status(200).json({success: true, message: "deleted ⛔"});
         const err = new Error();
         next(err);
@@ -76,6 +84,12 @@ exports.updateProduct = async(req, res, next) => {
         const _id = req.params.id;
         const data = req.body;
         const response = await Product.findByIdAndUpdate(_id, data, {new: true});
+        if(req.user._id.toString() !== response.createdBy.toString()) {
+            return res.status(401).json({
+                success: false, 
+                message: "Not Allowed to Update Another Vendors Product"
+            })
+        }
         if(response)  return res.status(200).json({success: true, response});
         const err = new Error();
         next(err);

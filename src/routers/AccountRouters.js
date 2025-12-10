@@ -12,6 +12,7 @@ const { getAllProducts,
 router.use(passport.initialize());
 const LocalAuthMiddleware = passport.authenticate('local', {session: false});
 const multer = require('multer');
+const isVendor = require('../middleware/isVendor');
 const storage = multer.memoryStorage();
 const upload = multer({
     storage,
@@ -149,8 +150,8 @@ router.delete('/users/delete', jwtAuthMiddleware, async(req, res, next)=> {
 router.get('/products/all', getAllProducts);
 router.get('/product/:id', getProduct);
 
-router.post('/product/create', upload.single('image'),jwtAuthMiddleware, isAdmin, createProduct);
-router.put('/product/update/:id', jwtAuthMiddleware, isAdmin, updateProduct);
-router.delete('/product/delete/:id', jwtAuthMiddleware, isAdmin, deleteProduct);
+router.post('/product/create', upload.single('image'),jwtAuthMiddleware, isVendor, createProduct);
+router.put('/product/update/:id', jwtAuthMiddleware, isVendor, updateProduct);
+router.delete('/product/delete/:id', jwtAuthMiddleware, isVendor, deleteProduct);
 
 module.exports = router;
