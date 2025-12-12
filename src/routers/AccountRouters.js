@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
-const { jwtToken, jwtAuthMiddleware, isAdmin } = require('../middleware/Jwt');
+const { jwtToken, jwtAuthMiddleware, isAdmin, refreshToken, accessToken, decodeToken } = require('../middleware/Jwt');
 const passport = require('../middleware/Auth');
 const { getAllProducts, 
         getProduct, 
@@ -37,15 +37,9 @@ router.post('/register', async(req, res, next) => {
                 role : newUser.role
             }
 
-            const token = jwtToken(payload);
-
             return res.status(200).json({
                 sucess: true,
-                UserDetails: {
-                    username: newUser.username,
-                    email: newUser.email,
-                    token: token
-                }
+                message: "You can now login your account.."
             });
         }
         res.status(500).json({message: "Internal server error"});
@@ -62,9 +56,54 @@ router.post('/login',LocalAuthMiddleware ,async(req, res) => {
         username: username,
         role: UserDetails.role
     }
-    const token = jwtToken(payload);
-    res.status(200).json({success: true, message: 'Welcome User', token: token});
-} )
+    const refreshtoken = refreshToken(payload);
+    const accesstoken = accessToken(payload);
+    await User.findOneAndUpdate({username}, {refreshtoken: refreshtoken}); 
+    res.status(200).json({
+        success: true, 
+        message: 'Welcome User', 
+        refreshtoken: refreshtoken,
+        accesstoken: accesstoken});
+         
+})
+
+router.post('/refresh', async(req, res, next) => {
+    try{
+        const {refreshtoken} = req.body;
+        if(!refreshtoken) return res.status(400).json('No Token Found...');
+        const user = await User.findOne({refreshtoken});
+        if(!user) return res.status(400).json('Token in Invalid..');
+
+        const decode = decodeToken(refreshtoken);
+        
+        const newAccessToken = accessToken({
+            _id: user._id,
+            username: user.username,
+            role: user.role
+        })
+
+        res.status(200).json({
+            success: true,
+            accesstoken: newAccessToken
+        })
+
+    } catch(err) {
+        next(err);
+    }
+})
+
+router.post('/logout', jwtAuthMiddleware, async(req, res, next)=> {
+    try{
+        const _id = req.user._id;
+        const response = await User.findByIdAndUpdate({_id}, {refreshtoken: null});
+        res.status(200).json({
+            success: false,
+            message: "successfully logout.."
+        })
+    } catch(err) {
+        next(err);
+    }
+})
 
 router.get('/profile', jwtAuthMiddleware, async(req, res, next) => {
     try{

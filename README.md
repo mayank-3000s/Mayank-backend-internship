@@ -13,6 +13,9 @@ A Node.js + Express + MongoDB backend
 - CRUD operation for users
 - products management // admin access - CRUD operation 
 - Pagination, Filtering, Sorting, Searching
+- image upload option for product
+- vendor facilities (CRUD)
+- accesstoken + refreshtoken 
 
 #Folder Structure 
 /src 

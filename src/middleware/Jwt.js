@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const {jwt_token_key} = require('../../env');
+const {jwt_token_key, jwt_refresh_key} = require('../../env');
 
 const jwtAuthMiddleware = (req, res, next) => {
     const authHeader = req.headers.authorization;
@@ -34,4 +34,19 @@ const jwtToken = (payload) => {
     return token;
 }
 
-module.exports = {jwtToken, jwtAuthMiddleware, isAdmin};
+const refreshToken = (payload) => {
+    const token = jwt.sign(payload, jwt_refresh_key, {expiresIn: "15m"});
+    return token;
+}
+
+const accessToken = (payload) => {
+    const token = jwt.sign(payload, jwt_token_key, {expiresIn: "7d"});
+    return token;
+}
+
+const decodeToken = (token) => {
+    const decode = jwt.verify(token, jwt_refresh_key);
+    return decode;
+}
+
+module.exports = {jwtToken, jwtAuthMiddleware, isAdmin, refreshToken, accessToken, decodeToken};

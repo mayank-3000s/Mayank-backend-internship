@@ -23,6 +23,10 @@ const newUserSchema = mongoose.Schema({
       type: String,
       enum: ['admin', 'user', 'vendor'],
       required: true
+    },
+    refreshtoken: {
+      type: String,
+      default: null
     }
   },
   { timestamps: true }
