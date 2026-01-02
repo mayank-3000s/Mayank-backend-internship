@@ -27,6 +27,17 @@ const newUserSchema = mongoose.Schema({
     refreshtoken: {
       type: String,
       default: null
+    },
+    emailverified: {
+      type: Boolean,
+      default: false
+    },
+    otp: {
+      type: String,
+      default: null
+    },
+    otpexpiry: {
+      type: Date
     }
   },
   { timestamps: true }

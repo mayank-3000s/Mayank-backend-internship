@@ -13,6 +13,9 @@ router.use(passport.initialize());
 const LocalAuthMiddleware = passport.authenticate('local', {session: false});
 const multer = require('multer');
 const isVendor = require('../middleware/isVendor');
+const generateOTP = require('../function/OTPgenerator');
+const SendEmail = require('../email/OTPSender');
+const passwordResetOTP = require('../email/passwordResetOTP');
 const storage = multer.memoryStorage();
 const upload = multer({
     storage,
@@ -28,22 +31,43 @@ const upload = multer({
 router.post('/register', async(req, res, next) => {
     try{
         const data = req.body;
-        const newUser = new User(data);
+        const otp = generateOTP();
+        const newData = {
+            ...data,
+            otp: otp,
+            otpexpiry: Date.now() + 2 * 60 * 1000
+        }
+        const newUser = new User(newData);
         const response = await newUser.save();
+        await SendEmail(data.email, otp);
         if(response) {
-            const payload = {
-                _id : newUser._id,
-                username : newUser.username,
-                role : newUser.role
-            }
-
             return res.status(200).json({
                 sucess: true,
-                message: "You can now login your account.."
+                message: "Otp has been send"
             });
         }
         res.status(500).json({message: "Internal server error"});
     }catch(err) {
+        next(err);
+    }
+})
+
+router.post('/verify-email', async(req, res, next) => {
+    try{
+        const {email, otp} = req.body;
+        const user = await User.findOne({email});
+        if(!user) return res.status(400).json('No User Found');
+        
+        if(user.otp !== otp || user.otpexpiry < Date.now()) {
+            return res.status(400).json('otp is Invalid or expired');
+        }
+        user.emailverified = true;
+        user.otp = undefined;
+        user.otpexpiry = undefined;
+        await user.save();
+
+        res.json({ message: "Email verified successfully" });
+    } catch(err) {
         next(err);
     }
 })
@@ -97,7 +121,7 @@ router.post('/logout', jwtAuthMiddleware, async(req, res, next)=> {
         const _id = req.user._id;
         const response = await User.findByIdAndUpdate({_id}, {refreshtoken: null});
         res.status(200).json({
-            success: false,
+            success: true,
             message: "successfully logout.."
         })
     } catch(err) {
@@ -192,5 +216,47 @@ router.get('/product/:id', getProduct);
 router.post('/product/create', upload.single('image'),jwtAuthMiddleware, isVendor, createProduct);
 router.put('/product/update/:id', jwtAuthMiddleware, isVendor, updateProduct);
 router.delete('/product/delete/:id', jwtAuthMiddleware, isVendor, deleteProduct);
+
+router.get('/reset/request', jwtAuthMiddleware, async(req, res, next)=> {
+    try{
+        const {username} = req.user;
+        const userInfo = await User.findOne({username});
+        if(!userInfo.emailverified) {
+            return res.status(200).json({success: false, message: "Please verify your email first"});
+        }
+
+        const otp = generateOTP();
+        userInfo.otp = otp;
+        userInfo.otpexpiry = Date.now() + 2*60*1000;
+        await userInfo.save();
+
+        passwordResetOTP(userInfo.email, otp);
+        res.json({message: 'OTP send to your email'})
+
+    }catch(err) {
+        next(err);
+    }
+})
+
+router.post('/reset/password', async(req, res, next) => {
+    try{
+        const {email, otp, newPassword} = req.body;
+        const userInfo = await User.findOne({email});
+
+        if(otp !== userInfo.otp || userInfo.otpexpiry < Date.now()) {
+            return res.status(401).json({success: false, message: 'OTP invalid or expired'})
+        }
+
+        userInfo.password = newPassword;
+        userInfo.otp = null;
+        userInfo.otpexpiry = null;
+
+        await userInfo.save();
+        res.json({ message: "Password reset successfully" });
+    } catch(err) {
+        console.log(err);
+        next(err);
+    }
+})
 
 module.exports = router;
